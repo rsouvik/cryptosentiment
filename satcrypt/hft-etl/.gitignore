@@ -1,0 +1,4 @@
+*.idea
+*.vscode
+hft-etl
+*/.DS_STORE

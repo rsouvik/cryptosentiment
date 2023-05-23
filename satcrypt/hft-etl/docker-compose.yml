@@ -1,0 +1,54 @@
+version: '3'
+services:
+  hft-etl:
+    image: hft-etl:latest
+    environment:
+      - INFLUXDB_ADMIN_TOKEN=g4ulYc_7aoRft4K6ypVcx3srqXePXum0M96EnRocdpTaBM7FPxsfWHeBEao_lyDY7DslMjxHQy9-867Qjt1P1Q==
+    depends_on:
+      - influxdb
+  
+  influxdb:
+    image: influxdb:latest
+    environment:
+      - DOCKER_INFLUXDB_INIT_MODE=setup
+      - DOCKER_INFLUXDB_INIT_USERNAME=puregold
+      - DOCKER_INFLUXDB_INIT_PASSWORD=puregold
+      - DOCKER_INFLUXDB_INIT_ORG=puregold
+      - DOCKER_INFLUXDB_INIT_BUCKET=ohlcv
+      - DOCKER_INFLUXDB_INIT_ADMIN_TOKEN=g4ulYc_7aoRft4K6ypVcx3srqXePXum0M96EnRocdpTaBM7FPxsfWHeBEao_lyDY7DslMjxHQy9-867Qjt1P1Q==
+      - INFLUXDB_REPORTING_DISABLED=true
+      - INFLUXD_CONFIG_PATH=/etc/influxdb2/config
+    ports:
+      - "8086:8086"
+  
+  influxdb_cli:
+    links:
+      - influxdb
+    image: influxdb:latest
+    environment: 
+      - DOCKER_INFLUXDB_INIT_MODE=setup
+      - DOCKER_INFLUXDB_INIT_USERNAME=puregold
+      - DOCKER_INFLUXDB_INIT_PASSWORD=puregold
+      - DOCKER_INFLUXDB_INIT_ORG=puregold
+      - DOCKER_INFLUXDB_INIT_BUCKET=ohlcv
+      - DOCKER_INFLUXDB_INIT_ADMIN_TOKEN=g4ulYc_7aoRft4K6ypVcx3srqXePXum0M96EnRocdpTaBM7FPxsfWHeBEao_lyDY7DslMjxHQy9-867Qjt1P1Q==
+      - INFLUXDB_REPORTING_DISABLED=true
+    entrypoint: ["./entrypoint.sh"]
+    restart: on-failure:10
+    depends_on:
+      - influxdb
+  
+  grafana:
+    image: grafana/grafana-oss:8.2.0
+    environment:
+      - GF_PATHS_PROVISIONING=/etc/grafana/provisioning
+      - INFLUXDB_URL=http://influxdb:8086
+      - INFLUXDB_TOKEN=g4ulYc_7aoRft4K6ypVcx3srqXePXum0M96EnRocdpTaBM7FPxsfWHeBEao_lyDY7DslMjxHQy9-867Qjt1P1Q==
+    ports:
+      - 3000:3000
+    volumes:
+      - $PWD/grafana/dashboards/dashboards.yml:/etc/grafana/provisioning/dashboards/dashboards.yml
+      - $PWD/grafana/datasources/influxdb.yml:/etc/grafana/provisioning/datasources/influxdb.yml
+      - $PWD/grafana/dashboards/etc-btc-open.json:/var/lib/grafana/dashboards/eth-btc-open.json
+volumes:
+  influxdb2:
